@@ -1,0 +1,104 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+
+    .bookmark-banner {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        background-color: rgb(68, 125, 248);
+        color: white;
+        text-align: center;
+        padding: 5px 0;
+        font-weight: bold;
+        z-index: 10;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <form method="GET" action="{% url 'product_list' %}">
+                <div class="form-group">
+                    <input type="text" name="q" class="form-control" value="{{ request.GET.q }}" placeholder="Filter products by name.">
+                </div>
+                <div class="form-row mt-2">
+                    <div class="col">
+                        <select name="filter_category" class="form-control">
+                            <option value="">All Products</option>
+                            <option value="True" {% if request.GET.filter_category == 'True' %}selected{% endif %}>Digital Products</option>
+                            <option value="False" {% if request.GET.filter_category == 'False' %}selected{% endif %}>Physical Products</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Apply Filters</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        {% for product in products %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="thumbnail img-fluid position-relative">
+                    <img width="340px" src="{{ product.image.url }}" alt="{{ product.name }}">
+                    <div class="box-element product">
+                        <h6><strong>{{ product.name }}</strong></h6>
+                        <hr>
+                        <button data-product="{{ product.id }}" data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
+                        <button class="btn btn-outline-primary bookmark-btn" data-product-id="{{ product.id }}">
+                            {% if product.id in bookmarked_products %}
+                                Unbookmark
+                            {% else %}
+                                Bookmark
+                            {% endif %}
+                        </button>
+                        <h4 style="display: inline-block; float: right">
+                            <strong>${{ product.price }}</strong>
+                        </h4>
+                    </div>
+                    {% if product.id in bookmarked_products %}
+                        <div class="bookmark-banner">Bookmarked</div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const bookmarkButtons = document.querySelectorAll('.bookmark-btn');
+
+    bookmarkButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            const productId = event.target.getAttribute('data-product-id');
+
+            fetch(`/toggle_bookmark/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ product_id: productId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.bookmarked) {
+                    event.target.textContent = 'Unbookmark';
+                    event.target.closest('.thumbnail').insertAdjacentHTML('afterbegin', '<div class="bookmark-banner">Bookmarked</div>');
+                } else {
+                    event.target.textContent = 'Bookmark';
+                    const banner = event.target.closest('.thumbnail').querySelector('.bookmark-banner');
+                    if (banner) {
+                        banner.remove();
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock content %}

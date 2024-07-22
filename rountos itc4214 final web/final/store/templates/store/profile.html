@@ -1,0 +1,58 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+
+			
+    <h1 align="center">User Account Controls</h1>
+
+    {% if user_form.errors %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <div id="form_errors">
+                {% for key, value in user_form.errors.items %}
+                    <strong>{{ value }}</strong>
+                {% endfor %}
+            </div>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endif %}
+    <div class="form-content">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username">Change Username:</label>
+                <input type="text" class="form-control " id="id_username" name="username" value="" placeholder="Enter your new Username" required>
+                {{ user_form.username }}
+            </div>
+            <div class="form-group">
+                <label for="id_email">Change Email:</label>
+                <input type="email" class="form-control " id="id_email" name="email" value="" placeholder="Enter your new Email" required>
+                {{ user_form.email }}
+            </div>
+
+                <div class="form-group">
+                        <a href="#">Change Password</a>
+                        <hr>
+                </div>
+            </div>
+            <br><br>
+            <button type="submit" class="btn btn-dark btn-lg">Save Changes</button>
+            <button type="reset" class="btn btn-dark btn-lg">Reset</button>
+            <button type="reset" class="btn btn-danger btn-lg" style="float: right;">Delete Account</button>
+        </form>
+    </div>
+
+
+	{% else %}
+    <p> You are not logged in. <a href="/login">Log in to view your profile.</a></p>
+    {% endif %}
+
+
+
+
+{% endblock content %}
